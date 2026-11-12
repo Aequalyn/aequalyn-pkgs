@@ -1,0 +1,24 @@
+# Maintainer: qempexe
+pkgname=aequalyn-themes-git
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="Themes for Aequalyn: palettes with matching backgrounds"
+arch=('any')
+url="https://github.com/Aequalyn/aequalyn-themes"
+license=('custom')
+makedepends=('git')
+provides=('aequalyn-themes')
+conflicts=('aequalyn-themes')
+source=("aequalyn-themes::git+https://github.com/Aequalyn/aequalyn-themes.git")
+sha256sums=('SKIP')
+
+pkgver() {
+    cd aequalyn-themes
+    printf '0.1.0.r%s.%s' "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+package() {
+    cd aequalyn-themes
+    install -d "$pkgdir/usr/share/aequalyn/themes"
+    cp -r --no-preserve=ownership themes/. "$pkgdir/usr/share/aequalyn/themes/"
+}

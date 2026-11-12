@@ -1,0 +1,26 @@
+# Maintainer: qempexe
+pkgname=aequalyn-shell-git
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="Aequalyn desktop shell for Hyprland (Quickshell/QML): bar, dock, launcher, Atelier"
+arch=('any')
+url="https://github.com/Aequalyn/aequalyn-shell"
+license=('custom')
+depends=('quickshell' 'qt6-declarative' 'qt6-5compat' 'ttf-jetbrains-mono-nerd')
+makedepends=('git')
+provides=('aequalyn-shell')
+conflicts=('aequalyn-shell')
+source=("aequalyn-shell::git+https://github.com/Aequalyn/aequalyn-shell.git")
+sha256sums=('SKIP')
+
+pkgver() {
+    cd aequalyn-shell
+    printf '0.1.0.r%s.%s' "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+package() {
+    cd aequalyn-shell
+    install -d "$pkgdir/usr/share/aequalyn/shell"
+    cp -r --no-preserve=ownership . "$pkgdir/usr/share/aequalyn/shell/"
+    rm -rf "$pkgdir/usr/share/aequalyn/shell/.git"
+}
