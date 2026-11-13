@@ -12,7 +12,6 @@ python-pip
 docker
 docker-compose
 mise
-htop
 ripgrep
 fd
 bat

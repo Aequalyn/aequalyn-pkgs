@@ -10,8 +10,6 @@ linux-headers
 mkinitcpio
 sudo
 git
-nano
-vim
 polkit
 
 # Boot chain

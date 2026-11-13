@@ -31,7 +31,6 @@ xdg-user-dirs
 libnotify
 gnome-keyring
 libsecret
-nautilus-python
 
 # Fonts
 ttf-jetbrains-mono-nerd
@@ -74,12 +73,13 @@ parted
 
 # Defaults (browser, file manager, tools)
 chromium
-thunar
+nautilus-python
 gvfs
 tumbler
 ffmpegthumbnailer
 # Atelier: video frames for live wallpapers + painted wallpapers
 ffmpeg
+sddm
 kitty
 foot
 fuzzel

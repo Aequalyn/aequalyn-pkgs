@@ -7,7 +7,7 @@
 # terminal, launcher, screenshot tools. Nothing extra here.
 
 chromium
-thunar
+nautilus
 kitty
 fuzzel
 grim
