@@ -11,6 +11,10 @@ broadcom-wl-dkms
 # GPU driver sets so hardware detection can install the right one offline
 nvidia-open
 nvidia-utils
+# DKMS build for offline NVIDIA installs: the module is rebuilt against
+# linux-headers when the kernel updates. The make script's *-dkms filter keeps
+# it out of the live ISO, where nothing ever builds modules.
+nvidia-open-dkms
 mesa
 vulkan-radeon
 vulkan-intel
