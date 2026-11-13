@@ -46,6 +46,9 @@ libpulse
 pipewire-pulse
 
 # Shell runtime dependencies
+xdg-utils
+xdg-terminal-exec
+gtk3
 brightnessctl
 playerctl
 pamixer
