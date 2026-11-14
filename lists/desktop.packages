@@ -73,6 +73,10 @@ zenity
 python
 gptfdisk
 parted
+# GUI disk utility (format/mount/benchmark drives), complements parted/gptfdisk
+gnome-disk-utility
+# Open source terminal coding agent
+opencode
 
 # Defaults (browser, file manager, tools)
 chromium
