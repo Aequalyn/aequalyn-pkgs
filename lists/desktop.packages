@@ -80,6 +80,7 @@ opencode
 
 # Defaults (browser, file manager, tools)
 chromium
+vivaldi
 nautilus-python
 gvfs
 tumbler
