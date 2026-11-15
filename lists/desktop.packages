@@ -20,6 +20,7 @@ qt6-svg
 qt6-wayland
 qt6-multimedia
 qt6-5compat
+qt6-virtualkeyboard
 qt6ct
 adwaita-icon-theme
 gnome-themes-extra
