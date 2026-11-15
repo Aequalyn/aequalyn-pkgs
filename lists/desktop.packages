@@ -7,7 +7,9 @@ xorg-xwayland
 quickshell
 matugen
 awww
-hyprpolkitagent
+# polkit-gnome's GTK agent works on virtio-gpu VMs where hyprpolkitagent
+# crashes while rendering its password dialog (breaking pkexec).
+polkit-gnome
 hyprlock
 hypridle
 # graceful shutdown menu used by the SUPER+SHIFT+M exit bind
