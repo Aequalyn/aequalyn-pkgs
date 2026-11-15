@@ -5,10 +5,12 @@ lazygit
 github-cli
 nodejs
 pnpm
+npm
 rust
 go
 python
 python-pip
+uv
 docker
 docker-compose
 mise

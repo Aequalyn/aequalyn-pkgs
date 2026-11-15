@@ -17,6 +17,10 @@ pkgbuilds/                   aequalyn-git, aequalyn-shell-git, aequalyn-themes-g
 The installer reads `lists/` (as `packages/` in the assembled tree), so a
 change here changes every new install and ISO.
 
+The optional `dev` profile includes programming runtimes and utilities such as
+mise, Node.js, npm, Python, uv, Go, Rust, Docker and GitHub CLI. On an existing
+installation, add individual packages from the Aequalyn Store.
+
 The PKGBUILDs install the core to `/usr/share/aequalyn` and its commands to
 `/usr/bin`, the shell to `/usr/share/aequalyn/shell` and the themes to
 `/usr/share/aequalyn/themes`:
