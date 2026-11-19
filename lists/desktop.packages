@@ -99,6 +99,9 @@ fuzzel
 btop
 fastfetch
 mpv
+# DDWriter (local.packages): its Tk window, and powering off the drive afterwards
+tk
+udisks2
 imv
 evince
 intel-media-driver

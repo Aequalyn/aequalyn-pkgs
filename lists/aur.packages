@@ -27,5 +27,4 @@ localsend-bin
 postman-bin
 visual-studio-code-bin
 
-# Live (video) wallpapers in Atelier. Optional: everything else works without it.
-mpvpaper
+# mpvpaper (live wallpapers) ships prebuilt: see local.packages.

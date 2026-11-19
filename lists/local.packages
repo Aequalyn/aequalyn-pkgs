@@ -1,0 +1,14 @@
+# Packages built for Aequalyn and shipped prebuilt in aur-cache/: installed on
+# the live ISO (from a local repository at build time) and on every install made
+# from it (staged from the ISO's offline repository and installed with pacman -U).
+# Their dependencies come from the official repositories through the other lists.
+# One package per line; '#' and blank lines are ignored.
+
+# Live (video) wallpapers in Atelier (AUR, built on the host with yay)
+mpvpaper
+
+# Write ISO images to USB drives (nightdevil00/Tools, pkgbuilds/ddwriter)
+ddwriter
+
+# Disk usage in the terminal (qempexe/nudu, pkgbuilds/nudu)
+nudu
