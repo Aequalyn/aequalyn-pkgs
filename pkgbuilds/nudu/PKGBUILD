@@ -1,0 +1,45 @@
+# Maintainer: qempexe
+pkgname=nudu
+pkgver=0.2.0
+pkgrel=1
+pkgdesc="new du: a fast terminal disk usage analyzer with a dashboard view, ownership, filesystem-aware sizes and age heat"
+arch=('x86_64')
+url="https://github.com/qempexe/nudu"
+license=('MIT')
+depends=('gcc-libs' 'glibc')
+makedepends=('cargo')
+source=("$pkgname-$pkgver.tar.gz::https://github.com/qempexe/nudu/archive/refs/tags/v$pkgver.tar.gz")
+sha256sums=('6d1576add0b799917c61fc0fbf6db262578b35714ddcad4337552f81bb6b3196')
+options=('!lto')
+
+prepare() {
+    cd "$pkgname-$pkgver"
+    export RUSTUP_TOOLCHAIN=stable
+    cargo fetch --locked --target "$(rustc -vV | sed -n 's/host: //p')"
+}
+
+build() {
+    cd "$pkgname-$pkgver"
+    export RUSTUP_TOOLCHAIN=stable CARGO_TARGET_DIR=target
+    cargo build --frozen --release
+}
+
+package() {
+    cd "$pkgname-$pkgver"
+    install -Dm755 target/release/nudu "$pkgdir/usr/bin/nudu"
+    install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+    install -Dm644 README.md "$pkgdir/usr/share/doc/$pkgname/README.md"
+    # a terminal app: the launcher lists it with the other command-line tools
+    install -Dm644 /dev/stdin "$pkgdir/usr/share/applications/nudu.desktop" <<DESKTOP
+[Desktop Entry]
+Name=nudu
+GenericName=Disk Usage Analyzer
+Comment=See what is using your disk, in the terminal
+Exec=nudu
+Icon=drive-harddisk
+Terminal=true
+Type=Application
+Categories=System;Utility;ConsoleOnly;
+Keywords=disk;usage;du;space;storage;
+DESKTOP
+}

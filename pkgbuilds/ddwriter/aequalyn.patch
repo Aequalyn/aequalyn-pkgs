@@ -1,0 +1,46 @@
+--- a/DDWriter/ddwriter.py
++++ b/DDWriter/ddwriter.py
+@@ -449,6 +449,15 @@
+         post("log", "Warning: Could not eject device automatically - remove it safely before unplugging")
+ 
+ 
++def sudo_needs_password():
++    """False when sudo runs without one (the live ISO's user, NOPASSWD rules)."""
++    try:
++        return subprocess.run(["sudo", "-n", "true"], stdin=subprocess.DEVNULL,
++                              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode != 0
++    except OSError:
++        return True
++
++
+ # ---------------------------------------------------------------- GUI
+ 
+ class DDWriterApp:
+@@ -641,7 +650,7 @@
+             return
+ 
+         password = None
+-        if not IS_WINDOWS:
++        if not IS_WINDOWS and sudo_needs_password():
+             password = simpledialog.askstring(
+                 "Authentication Required",
+                 "Enter your password to write to the device:",
+@@ -651,7 +660,7 @@
+             if not password:
+                 return
+ 
+-        self._start_write(password)
++        self._start_write(password or "")
+ 
+     def _start_write(self, password):
+         self.is_writing = True
+@@ -738,7 +747,8 @@
+         except Exception:
+             pass
+ 
+-    root = tk.Tk()
++    # the window's class matches the launcher (StartupWMClass), so docks show its icon
++    root = tk.Tk(className="ddwriter")
+     DDWriterApp(root)
+     root.mainloop()
+ 

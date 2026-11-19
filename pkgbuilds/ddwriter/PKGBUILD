@@ -1,0 +1,52 @@
+# Maintainer: qempexe
+# DDWriter by nightdevil00 (https://github.com/nightdevil00/Tools), MIT.
+# aequalyn.patch: the window's class matches the launcher, and no password is
+# asked when sudo needs none (the live ISO's user).
+pkgname=ddwriter
+pkgver=1.0.0
+pkgrel=1
+pkgdesc="Write ISO images to USB drives with dd: device detection, progress, verification and eject"
+arch=('any')
+url="https://github.com/nightdevil00/Tools/tree/main/DDWriter"
+license=('MIT')
+depends=('python' 'tk' 'util-linux' 'sudo')
+optdepends=('udisks2: power off the drive after writing')
+makedepends=('git' 'imagemagick')
+_commit=1dcca80c3942aa80f8a717607093a9b5a5d434ab
+source=("Tools::git+https://github.com/nightdevil00/Tools.git#commit=${_commit}"
+        "aequalyn.patch")
+sha256sums=('SKIP'
+            '3b8441990f079c034053570c2d3ab5449d29e8ead133e6feca0a5b53d575d56b')
+
+prepare() {
+    cd Tools
+    patch -Np1 -i "$srcdir/aequalyn.patch"
+}
+
+package() {
+    cd Tools/DDWriter
+    install -Dm755 ddwriter.py "$pkgdir/usr/share/ddwriter/ddwriter.py"
+    install -d "$pkgdir/usr/bin"
+    printf '#!/bin/sh\nexec python3 /usr/share/ddwriter/ddwriter.py "$@"\n' > "$pkgdir/usr/bin/ddwriter"
+    chmod 755 "$pkgdir/usr/bin/ddwriter"
+    # the 1.6 MB source picture, at the sizes icon themes use
+    for s in 48 128 256; do
+        install -d "$pkgdir/usr/share/icons/hicolor/${s}x${s}/apps"
+        magick ddwriter.png -resize "${s}x${s}" "$pkgdir/usr/share/icons/hicolor/${s}x${s}/apps/ddwriter.png"
+    done
+    install -Dm644 /dev/stdin "$pkgdir/usr/share/applications/ddwriter.desktop" <<DESKTOP
+[Desktop Entry]
+Name=DDWriter
+GenericName=USB Image Writer
+Comment=Write ISO images to USB drives using dd
+Exec=ddwriter
+Icon=ddwriter
+Terminal=false
+Type=Application
+Categories=Utility;System;
+Keywords=usb;iso;dd;write;flash;
+StartupNotify=true
+StartupWMClass=ddwriter
+DESKTOP
+    install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}
