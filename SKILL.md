@@ -32,9 +32,15 @@ pkgbuilds/    aequalyn-git, aequalyn-shell-git, aequalyn-themes-git, ddwriter, n
 
 - `minimal.packages` — chromium, nautilus, kitty, fuzzel, grim.
 - `student.packages` — libreoffice-fresh, obs-studio, xournalpp, calibre, thunderbird.
-- `dev.packages` — neovim, git, lazygit, github-cli, nodejs, pnpm, npm, rust, go, python, python-pip, uv, docker, docker-compose, mise, ripgrep, fd, bat, eza, jq.
+- `dev.packages` — Development: neovim, git, lazygit, github-cli, nodejs, pnpm, npm, rust, go, python, python-pip, uv, docker, docker-compose, mise, ripgrep, fd, bat, eza, jq.
 - `creative.packages` — gimp, inkscape, blender, krita, kdenlive, obs-studio, audacity, darktable.
 - `gaming.packages` — steam, gamemode, mangohud, lutris, wine, winetricks, lib32-gamemode, lib32-mangohud, discord.
+- `ai.packages` — ollama, llama-cpp, python-pytorch.
+- `service.packages` — bitwarden, signal-desktop, tailscale, syncthing, openssh, rsync.
+- `editor.packages` — neovim, vim, helix, emacs, micro.
+- `style.packages` — nerd fonts: Fira Code, Cascadia Mono, Meslo LG Mono, Iosevka, Bitstream Vera Mono.
+- `browser.packages` — chromium, firefox, librewolf, qutebrowser.
+- `terminal.packages` — alacritty, foot, ghostty, kitty, wezterm.
 
 ## PKGBUILDs
 
