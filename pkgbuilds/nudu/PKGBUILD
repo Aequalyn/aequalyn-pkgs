@@ -29,6 +29,16 @@ package() {
     install -Dm755 target/release/nudu "$pkgdir/usr/bin/nudu"
     install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
     install -Dm644 README.md "$pkgdir/usr/share/doc/$pkgname/README.md"
+    # icon (scalable SVG)
+    install -Dm644 /dev/stdin "$pkgdir/usr/share/icons/hicolor/scalable/apps/nudu.svg" <<'SVG'
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="nudu">
+  <rect width="512" height="512" rx="96" fill="#0f172a"/>
+  <circle cx="256" cy="256" r="120" fill="none" stroke="#334155" stroke-width="64"/>
+  <circle cx="256" cy="256" r="120" fill="none" stroke="#10b981" stroke-width="64" stroke-dasharray="490 264" stroke-linecap="butt" transform="rotate(-90 256 256)"/>
+  <circle cx="256" cy="256" r="52" fill="#0f172a"/>
+  <circle cx="256" cy="256" r="14" fill="#10b981"/>
+</svg>
+SVG
     # a terminal app: the launcher lists it with the other command-line tools
     install -Dm644 /dev/stdin "$pkgdir/usr/share/applications/nudu.desktop" <<DESKTOP
 [Desktop Entry]
@@ -36,7 +46,7 @@ Name=nudu
 GenericName=Disk Usage Analyzer
 Comment=See what is using your disk, in the terminal
 Exec=xdg-terminal-exec nudu
-Icon=drive-harddisk
+Icon=nudu
 Terminal=false
 Type=Application
 Categories=System;Utility;ConsoleOnly;
