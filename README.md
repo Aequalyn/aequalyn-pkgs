@@ -46,3 +46,8 @@ cd pkgbuilds/aequalyn-themes-git && makepkg -si
 ## Credits
 
 [nightdevil00](https://github.com/nightdevil00) contributed to the code here.
+
+## Documentation
+
+- `SECURITY.md` — security model and concerns.
+- `SKILL.md` — development/install skill reference.
