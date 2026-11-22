@@ -35,9 +35,9 @@ package() {
 Name=nudu
 GenericName=Disk Usage Analyzer
 Comment=See what is using your disk, in the terminal
-Exec=nudu
+Exec=xdg-terminal-exec nudu
 Icon=drive-harddisk
-Terminal=true
+Terminal=false
 Type=Application
 Categories=System;Utility;ConsoleOnly;
 Keywords=disk;usage;du;space;storage;
