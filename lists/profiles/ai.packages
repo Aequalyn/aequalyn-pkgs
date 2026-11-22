@@ -1,0 +1,4 @@
+# AI: local models and their runtime libraries.
+ollama
+llama-cpp
+python-pytorch

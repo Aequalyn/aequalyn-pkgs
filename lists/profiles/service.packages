@@ -1,0 +1,7 @@
+# Service: accounts, messaging, sync and remote access.
+bitwarden
+signal-desktop
+tailscale
+syncthing
+openssh
+rsync
