@@ -1,5 +1,6 @@
-# Developer
+# Developer: languages, tools and editors
 neovim
+helix
 git
 lazygit
 github-cli
@@ -9,7 +10,6 @@ npm
 rust
 go
 python
-python-pip
 uv
 docker
 docker-compose
@@ -19,3 +19,4 @@ fd
 bat
 eza
 jq
+ttf-firacode-nerd

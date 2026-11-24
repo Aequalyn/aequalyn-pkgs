@@ -10,8 +10,8 @@ lists/
 ├── offline-extra.packages   extra packages bundled in the ISO's offline repo
 ├── aur.packages             built after install, online, best effort
 ├── local.packages           prebuilt here, on the live ISO and every install from it
-└── profiles/                minimal, student, dev, creative, gaming,
-                             ai, service, editor, style, browser, terminal
+└── profiles/                minimal (always), casual, dev, creative,
+                             gaming, student, work, ai: any of them together
 aur-cache/                   prebuilt packages baked into the offline repo
 pkgbuilds/                   aequalyn-git, aequalyn-shell-git, aequalyn-themes-git,
                              ddwriter, nudu
