@@ -87,6 +87,8 @@ vivaldi
 nautilus-python
 # Aequalyn FM's file daemon (plugins/aequalynfm/daemon/fmd.py) imports gi
 python-gobject
+# aequalyn-apply-fonts: reads font widths
+python-fonttools
 gvfs
 tumbler
 ffmpegthumbnailer
