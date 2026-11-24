@@ -1,0 +1,344 @@
+--- a/config.c
++++ b/config.c
+@@ -3919,6 +3919,38 @@
+     }
+ }
+ 
++void
++config_fonts_replace(struct config *conf, const struct config *from)
++{
++    for (size_t i = 0; i < ALEN(conf->fonts); i++) {
++        config_font_list_destroy(&conf->fonts[i]);
++        config_font_list_clone(&conf->fonts[i], &from->fonts[i]);
++    }
++}
++
++bool
++config_fonts_equal(const struct config *a, const struct config *b)
++{
++    for (size_t i = 0; i < ALEN(a->fonts); i++) {
++        const struct config_font_list *la = &a->fonts[i];
++        const struct config_font_list *lb = &b->fonts[i];
++
++        if (la->count != lb->count)
++            return false;
++
++        for (size_t j = 0; j < la->count; j++) {
++            if (la->arr[j].pt_size != lb->arr[j].pt_size ||
++                la->arr[j].px_size != lb->arr[j].px_size ||
++                strcmp(la->arr[j].pattern, lb->arr[j].pattern) != 0)
++            {
++                return false;
++            }
++        }
++    }
++
++    return true;
++}
++
+ struct config *
+ config_clone(const struct config *old)
+ {
+--- a/config.h
++++ b/config.h
+@@ -478,6 +478,8 @@
+     bool as_server);
+ void config_free(struct config *conf);
+ struct config *config_clone(const struct config *old);
++void config_fonts_replace(struct config *conf, const struct config *from);
++bool config_fonts_equal(const struct config *a, const struct config *b);
+ 
+ bool config_font_parse(const char *pattern, struct config_font *font);
+ void config_font_list_destroy(struct config_font_list *font_list);
+--- a/doc/foot.1.scd
++++ b/doc/foot.1.scd
+@@ -703,6 +703,7 @@
+ 
+ - SIGUSR1: switch to the dark color theme (*[colors-dark]*).
+ - SIGUSR2: switch to the light color theme (*[colors-light]*).
++- SIGURG: reload the fonts from the configuration (Aequalyn patch).
+ 
+ Note: you can send SIGUSR1/SIGUSR2 to a *foot --server* process too,
+ in which case all client instances will switch theme. Furthermore, all
+--- a/main.c
++++ b/main.c
+@@ -15,6 +15,7 @@
+ #include <fcntl.h>
+ 
+ #include <fcft/fcft.h>
++#include <fontconfig/fontconfig.h>
+ 
+ #define LOG_MODULE "main"
+ #define LOG_ENABLE_DBG 0
+@@ -73,6 +74,66 @@
+     return true;
+ }
+ 
++struct sigurg_context {
++    struct config *conf;
++    struct wayland *wayl;
++    config_override_t *overrides;
++    bool as_server;
++};
++
++/*
++ * Reload the fonts from the configuration, in all open windows.
++ *
++ * SIGURG, since it is ignored by default: sending it to a foot
++ * without this patch is harmless.
++ */
++static bool
++fdm_sigurg(struct fdm *fdm, int signo, void *data)
++{
++    xassert(signo == SIGURG);
++
++    struct sigurg_context *ctx = data;
++
++    /* Applying overrides modifies them; use a copy */
++    config_override_t overrides = tll_init();
++    tll_foreach(*ctx->overrides, it)
++        tll_push_back(overrides, xstrdup(it->item));
++
++    user_notifications_t notifications = tll_init();
++    struct config new_conf = {NULL};
++    bool loaded = config_load(
++        &new_conf, ctx->conf->conf_path, &notifications, &overrides, false,
++        ctx->as_server);
++    tll_free_and_free(overrides, free);
++
++    if (!loaded) {
++        LOG_ERR("failed to reload the configuration, keeping current fonts");
++        config_free(&new_conf);
++        return true;
++    }
++
++    /* Fonts may have been installed since we were started */
++    if (!FcInitReinitialize())
++        LOG_WARN("failed to reinitialize fontconfig");
++
++    /* Footclients may have their own copy of the configuration. Leave
++     * those with custom fonts alone */
++    tll_foreach(ctx->wayl->terms, it) {
++        struct config *conf = (struct config *)it->item->conf;
++        if (conf != ctx->conf && config_fonts_equal(conf, ctx->conf))
++            config_fonts_replace(conf, &new_conf);
++    }
++    config_fonts_replace(ctx->conf, &new_conf);
++
++    tll_foreach(ctx->wayl->terms, it) {
++        if (config_fonts_equal(it->item->conf, &new_conf))
++            term_fonts_reload_from_conf(it->item);
++    }
++
++    config_free(&new_conf);
++    return true;
++}
++
+ static void
+ print_usage(const char *prog_name)
+ {
+@@ -535,12 +596,18 @@
+         free(saved_locale);
+     }
+ 
++    /* Applying overrides modifies them; keep a copy for font reloads */
++    config_override_t reload_overrides = tll_init();
++    tll_foreach(overrides, it)
++        tll_push_back(reload_overrides, xstrdup(it->item));
++
+     struct config conf = {NULL};
+     bool conf_successful = config_load(
+         &conf, conf_path, &user_notifications, &overrides, check_config, as_server);
+ 
+     tll_free_and_free(overrides, free);
+     if (!conf_successful) {
++        tll_free_and_free(reload_overrides, free);
+         config_free(&conf);
+         return ret;
+     }
+@@ -678,6 +745,16 @@
+         goto out;
+     }
+ 
++    struct sigurg_context sigurg_context = {
++        .conf = &conf,
++        .wayl = wayl,
++        .overrides = &reload_overrides,
++        .as_server = as_server,
++    };
++
++    if (!fdm_signal_add(fdm, SIGURG, &fdm_sigurg, &sigurg_context))
++        goto out;
++
+     struct sigaction sig_ign = {.sa_handler = SIG_IGN};
+     sigemptyset(&sig_ign.sa_mask);
+     if (sigaction(SIGHUP, &sig_ign, NULL) < 0 ||
+@@ -714,6 +791,7 @@
+     wayl_destroy(wayl);
+     key_binding_manager_destroy(key_binding_manager);
+     reaper_destroy(reaper);
++    fdm_signal_del(fdm, SIGURG);
+     fdm_signal_del(fdm, SIGUSR1);
+     fdm_signal_del(fdm, SIGUSR2);
+     fdm_signal_del(fdm, SIGTERM);
+@@ -721,6 +799,7 @@
+     fdm_destroy(fdm);
+ 
+     config_free(&conf);
++    tll_free_and_free(reload_overrides, free);
+ 
+     if (unlink_pid_file)
+         unlink(pid_file);
+--- a/render.c
++++ b/render.c
+@@ -991,6 +991,18 @@
+     const int cols_left = term->cols - col;
+     cell_cols = max(1, min(cell_cols, cols_left));
+ 
++    /* Proportional fonts: center narrow glyphs, and left align wide ones */
++    int center_ofs = 0;
++    if (term->font_is_proportional && cell_cols == 1 && glyph_count > 0 &&
++        glyphs[0] != NULL && !glyphs[0]->is_color_glyph)
++    {
++        const int slack = width - glyphs[0]->advance.x;
++        if (slack >= 0)
++            center_ofs = slack / 2;
++        else if (glyphs[0]->x > 0)
++            center_ofs = max(slack, -glyphs[0]->x);
++    }
++
+     /*
+      * Determine cells that will bleed into their right neighbor and remember
+      * them for cleanup in the next frame.
+@@ -1007,6 +1019,8 @@
+             advance += glyphs[i]->advance.x;
+         }
+ 
++        glyph_width += center_ofs;
++
+         if (glyph_width > render_width) {
+             render_width = min(glyph_width, render_width + width);
+ 
+@@ -1055,7 +1069,7 @@
+ 
+     int pen_x = x;
+     for (unsigned i = 0; i < glyph_count; i++) {
+-        const int letter_x_ofs = i == 0 ? term->font_x_ofs : 0;
++        const int letter_x_ofs = i == 0 ? term->font_x_ofs + center_ofs : 0;
+ 
+         const struct fcft_glyph *glyph = glyphs[i];
+         if (glyph == NULL)
+--- a/terminal.c
++++ b/terminal.c
+@@ -810,6 +810,48 @@
+     term->font_line_height.pt = fmaxf(line_original_pt_size * change, 0.);
+ }
+ 
++/*
++ * Advance width of a cell, given the primary font.
++ *
++ * Monospaced: the width of any letter. Proportional: between the
++ * average and the width of 'm'; the few glyphs wider than this
++ * overflow slightly, instead of all others being spaced far apart.
++ */
++static int
++font_cell_advance(struct terminal *term, struct fcft_font *font)
++{
++    static const char32_t chars[] =
++        U"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
++
++    const struct fcft_glyph *M = fcft_rasterize_char_utf32(
++        font, U'M', term->font_subpixel);
++    const int advance = M != NULL ? M->advance.x : font->max_advance.x;
++
++    int sum = 0, count = 0, narrow = INT_MAX, wide = 0, m = advance;
++
++    for (size_t i = 0; i < ALEN(chars) - 1; i++) {
++        const struct fcft_glyph *g = fcft_rasterize_char_utf32(
++            font, chars[i], term->font_subpixel);
++        if (g == NULL)
++            continue;
++
++        sum += g->advance.x;
++        count++;
++        narrow = min(narrow, g->advance.x);
++        wide = max(wide, g->advance.x);
++        if (chars[i] == U'm')
++            m = g->advance.x;
++    }
++
++    /* Hinting may make the widths in a monospaced font differ by a pixel */
++    term->font_is_proportional = count > 0 && wide - narrow > 1;
++    if (!term->font_is_proportional)
++        return advance;
++
++    const int average = (sum + count / 2) / count;
++    return (average + m + 1) / 2;
++}
++
+ static bool
+ term_set_fonts(struct terminal *term, struct fcft_font *fonts[static 4],
+                bool resize_grid)
+@@ -832,9 +874,7 @@
+ 
+     const struct config *conf = term->conf;
+ 
+-    const struct fcft_glyph *M = fcft_rasterize_char_utf32(
+-        fonts[0], U'M', term->font_subpixel);
+-    int advance = M != NULL ? M->advance.x : term->fonts[0]->max_advance.x;
++    const int advance = font_cell_advance(term, fonts[0]);
+ 
+     term_line_height_update(term);
+ 
+@@ -2351,6 +2391,33 @@
+     return load_fonts_from_conf(term);
+ }
+ 
++/* The font lists in term->conf have been replaced */
++bool
++term_fonts_reload_from_conf(struct terminal *term)
++{
++    const struct config *conf = term->conf;
++
++    for (size_t i = 0; i < 4; i++) {
++        const struct config_font_list *font_list = &conf->fonts[i];
++
++        free(term->font_sizes[i]);
++        term->font_sizes[i] = xmalloc(
++            sizeof(term->font_sizes[i][0]) * max(font_list->count, 1));
++
++        for (size_t j = 0; j < font_list->count; j++) {
++            const struct config_font *font = &font_list->arr[j];
++            term->font_sizes[i][j] = (struct config_font){
++                .pt_size = font->pt_size, .px_size = font->px_size};
++        }
++    }
++
++    /* Not mapped yet: the new fonts are loaded when it is */
++    if (term->fonts[0] == NULL || term->shutdown.in_progress)
++        return true;
++
++    return reload_fonts(term, true);
++}
++
+ bool
+ term_fractional_scaling(const struct terminal *term)
+ {
+--- a/terminal.h
++++ b/terminal.h
+@@ -468,6 +468,7 @@
+     float font_dpi_before_unmap;
+     bool font_is_sized_by_dpi;
+     int16_t font_x_ofs;
++    bool font_is_proportional;
+     int16_t font_y_ofs;
+     int16_t font_baseline;
+     enum fcft_subpixel font_subpixel;
+@@ -863,6 +864,7 @@
+ bool term_font_size_increase(struct terminal *term);
+ bool term_font_size_decrease(struct terminal *term);
+ bool term_font_size_reset(struct terminal *term);
++bool term_fonts_reload_from_conf(struct terminal *term);
+ bool term_font_dpi_changed(struct terminal *term, float old_scale);
+ void term_font_subpixel_changed(struct terminal *term);
+ int term_font_baseline(const struct terminal *term);

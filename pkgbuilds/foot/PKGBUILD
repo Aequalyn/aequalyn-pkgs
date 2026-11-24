@@ -1,0 +1,43 @@
+# Maintainer: Aequalyn
+# foot with aequalyn.patch: SIGURG reloads the fonts in open windows, and fonts that are
+# not monospaced are fitted to the grid.
+# Named foot with a pkgrel just above Arch's, so an Arch update replaces it cleanly;
+# stock foot ignores SIGURG. After one: raise pkgver/pkgrel here and rebuild.
+pkgname=foot
+pkgver=1.28.0
+pkgrel=2.2
+pkgdesc='Fast, lightweight, and minimalistic Wayland terminal emulator (live font reload)'
+url='https://codeberg.org/dnkl/foot'
+arch=(x86_64)
+license=(MIT)
+depends=(fcft fontconfig libfcft.so libutf8proc libxkbcommon ncurses pixman wayland)
+makedepends=(git meson ninja python scdoc tllist wayland-protocols)
+optdepends=('foot-terminfo: extra non-standard features over terminfo included in ncurses'
+            'libnotify: desktop notifications'
+            'xdg-utils: URI launching')
+backup=(etc/xdg/foot/foot.ini)
+source=("foot::git+$url.git#tag=$pkgver"
+        "aequalyn.patch")
+sha256sums=('05a057b1145507625d9f548ae546705d58ba60cbb26a8958ce72f0b9c1bdee46'
+            '5aba89b6c75ceb14d1365df421d2e0690a24eef067fc43be49745d42daed9785')
+
+prepare() {
+    cd foot
+    patch -Np1 -i "$srcdir/aequalyn.patch"
+}
+
+build() {
+    cd foot
+    ./pgo/pgo.sh partial . build -Dterminfo-base-name=foot-extra --prefix=/usr --wrap-mode=nodownload
+}
+
+check() {
+    ninja -C foot/build test
+}
+
+package() {
+    cd foot
+    DESTDIR="$pkgdir" ninja -C build install
+    rm -r "$pkgdir/usr/share/terminfo/"
+    install -Dm0644 -t "$pkgdir/usr/share/licenses/$pkgname/" LICENSE
+}

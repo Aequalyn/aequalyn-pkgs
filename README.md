@@ -21,7 +21,8 @@ pkgbuilds/                   aequalyn-git, aequalyn-shell-git, aequalyn-themes-g
 prebuilt in `aur-cache/`: mpvpaper (live wallpapers, from the AUR),
 [DDWriter](https://github.com/nightdevil00/Tools/tree/main/DDWriter) (writes ISO
 images to USB drives) and [nudu](https://github.com/qempexe/nudu) (disk usage in
-the terminal). The ISO build installs them on the live system from a local
+the terminal), and foot with live font changes (`pkgbuilds/foot`, over the Arch one:
+rebuild it when Arch updates foot). The ISO build installs them on the live system from a local
 repository, and the installer installs them on the target from the ISO's offline
 repository. To update one, build it and replace its file in `aur-cache/`:
 

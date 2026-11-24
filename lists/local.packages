@@ -12,3 +12,7 @@ ddwriter
 
 # Disk usage in the terminal (qempexe/nudu, pkgbuilds/nudu)
 nudu
+
+# foot with live font changes and proportional fonts (pkgbuilds/foot): newer than the
+# stock one the other lists install, so it replaces it. Rebuild it when Arch updates foot.
+foot
