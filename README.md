@@ -14,7 +14,7 @@ lists/
                              gaming, student, work, ai: any of them together
 aur-cache/                   prebuilt packages baked into the offline repo
 pkgbuilds/                   aequalyn-git, aequalyn-shell-git, aequalyn-themes-git,
-                             ddwriter, nudu
+                             ddwriter, foot, nudu
 ```
 
 `local.packages` lists packages that are not in the Arch repositories and ship
@@ -32,6 +32,9 @@ cd pkgbuilds/nudu && makepkg -f && cp nudu-*-x86_64.pkg.tar.zst ../../aur-cache/
 
 The installer reads `lists/` (as `packages/` in the assembled tree), so a
 change here changes every new install and ISO.
+
+`minimal` is the base of every install: the browser, file manager, terminal, launcher and
+screenshots. The others add to it; several can be chosen together.
 
 The optional `dev` profile includes programming runtimes and utilities such as
 mise, Node.js, npm, Python, uv, Go, Rust, Docker and GitHub CLI. On an existing
